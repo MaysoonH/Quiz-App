@@ -1,55 +1,19 @@
-#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
-# test
-# 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
 from langchain import PromptTemplate 
 from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import BaseOutputParser
 import streamlit as st
 import re
-# from openai import OpenAI
-import os
 import openai
 
 
-################################################# Undo till here
-
-api_key = os.getenv("OPENAI_API_KEY")
-openai.api_key = api_key
-# langchain_client = LangchainOpenAI()
 
 
-# completion = client.chat.completions.create(
-#   model="gpt-3.5-turbo",
-#   messages=[
-#     {"role": "system", "content": "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair."},
-#     {"role": "user", "content": "Compose a poem that explains the concept of recursion in programming."}
-#   ]
-# )
-
-# print(completion.choices[0].message)
-def get_quiz_questions(topic, num_questions):
-    prompt = f"Create a multiple-choice quiz with {num_questions} questions about {topic}, with the answers at the end. in the form "
-  
-    completion = openai.chat.completions.create(
-      model="gpt-3.5-turbo",
-      messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": prompt},
-      ]
-    )
-    # initial_response =  
-    return completion.choices[0].message
-    # processed_response = langchain_client.run(initial_response)
-    # return processed_response
-
-# prompt = "create a quiz about the basics of python programming"
-# quiz_python =get_response(prompt) 
 
 def create_quiz_prompt_template():
     template = """
-        You are an expert quiz maker for any feild. 
-        Create a multiple choice quiz with {questions_number} about the following concept/content: {quiz_context}.
+        You are an expert quiz maker for any field. 
+        Create a multiple-choice quiz with {questions_number} questions about the following concept/content: {quiz_context}.
         The format of the quiz should be as follows:
         - Questions:
             <Question 1>: 
@@ -75,15 +39,14 @@ def create_quiz_prompt_template():
             c. 3
             d. 1
         - Answers:
-        -1. a   
-
+        - 1. a   
     """
     prompt = PromptTemplate.from_template(template)
-    prompt.format(questions_number = 3, quiz_context="Data structures in python")
+    prompt.format(questions_number = 0, quiz_context="")
     return prompt
 
 def create_quiz_chain(prompt_template, llm): 
-    return LLMChain(llm=llm, prompt = prompt_template)
+    return LLMChain(llm=llm, prompt=prompt_template)
 
 
 
@@ -100,17 +63,20 @@ def main():
         st.session_state.user_answers = {}
 
     # User inputs
-    quiz_context = st.text_area("Enter the quiz context/concept")
-    questions_number = st.number_input("Enter number of questions", min_value=1, max_value=30)
+    st.session_state.quiz_context = st.text_area("Enter the quiz context/concept")
+    st.session_state.questions_number = st.number_input("Enter number of questions",min_value=1,max_value=30)
 
     # Generate quiz button
     if st.button("Generate Quiz"): 
-        # Generate a random seed
-        openai_questions = get_quiz_questions(quiz_context, questions_number)
+        #####new
+        if not st.session_state.quiz_context :
+            st.error("Quiz context is required. Please enter a value.")
+            st.stop()
+        # Generate a random seed based on user inputs
         prompt_template = create_quiz_prompt_template()
-        llm = ChatOpenAI()
+        llm = ChatOpenAI(temperature=0.9)
         chain = create_quiz_chain(prompt_template, llm)
-        quiz_response = chain.run(questions_number=questions_number, quiz_context=openai_questions)
+        quiz_response = chain.run(questions_number=st.session_state.questions_number, quiz_context=st.session_state.quiz_context)
         st.write("Quiz generated!")
 
         # Parsing the response
@@ -160,6 +126,8 @@ def main():
 
 
 
+
+
 class AnswersParser:
     def parse_questions_and_answers(self, text: str):
         # Split the text into questions and answers sections
@@ -197,12 +165,4 @@ class AnswersParser:
     
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
 
