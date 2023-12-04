@@ -98,13 +98,13 @@ def main():
 
         # Display the quiz questions with clickable answers
         for i, q in enumerate(st.session_state.quiz_data["questions"], start=1):
-            question_label = f"Question {i}"
-            st.subheader(question_label)
-            st.write(q["question"])
-            options = q["choices"]
+                    question_label = f"Question {i}"
+                    st.subheader(question_label)
+                    st.write(q["question"])
+                    options = q["choices"]
 
-            user_answer = st.radio("Select an answer:", options, key=f"question_{i}")
-            st.session_state.user_answers_dict[question_label] = user_answer
+                    user_answer = st.radio("Select an answer:", options, key=f"question_{i}")
+                    st.session_state.user_answers_dict[question_label] = user_answer
 
             
 
